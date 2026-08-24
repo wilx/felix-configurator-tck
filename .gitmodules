@@ -1,0 +1,6 @@
+[submodule "felix-dev"]
+	path = felix-dev
+	url = https://github.com/wilx/felix-dev.git
+[submodule "osgi-tck"]
+	path = osgi-tck
+	url = https://github.com/osgi/osgi.git
