@@ -14,13 +14,13 @@ readonly CONFIGURATOR_OSGI_VERSION="1.0.19.SNAPSHOT"
 readonly JAKARTA_JSON_VERSION="2.0.1"
 
 if [[ -z "${JAVA_HOME:-}" || ! -x "${JAVA_HOME}/bin/java" ]]; then
-    echo "JAVA_HOME must point to a JDK 8 installation." >&2
+    echo "JAVA_HOME must point to a JDK 17 installation." >&2
     exit 2
 fi
 
 java_version="$("${JAVA_HOME}/bin/java" -version 2>&1 | sed -n '1p')"
-if [[ "${java_version}" != *'version "1.8.'* ]]; then
-    echo "The OSGi 8.1 TCK workspace requires JDK 8; found: ${java_version}" >&2
+if [[ "${java_version}" != *'version "17.'* ]]; then
+    echo "The Configurator and Jakarta REST TCK run requires JDK 17; found: ${java_version}" >&2
     exit 2
 fi
 
@@ -45,13 +45,14 @@ readonly TEMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/felix-configurator-tck.XXXXXX")"
 readonly TCK_WORKTREE="${TEMP_DIR}/osgi-tck"
 readonly CONFIGURATOR_REPORT_SOURCE="${TCK_WORKTREE}/org.osgi.test.cases.configurator/generated/test-reports/testOSGi"
 readonly CONFIGURATOR_SECURE_REPORT_SOURCE="${TCK_WORKTREE}/org.osgi.test.cases.configurator.secure/generated/test-reports/testOSGi"
+readonly JAKARTA_REST_REPORT_SOURCE="${TCK_WORKTREE}/org.osgi.test.cases.jakartars/generated/test-reports/testOSGi"
 readonly REPORT_DESTINATION="${ROOT_DIR}/build/tck-reports"
 
 cleanup() {
     exit_status=$?
     set +e
 
-    if [[ -d "${CONFIGURATOR_REPORT_SOURCE}" || -d "${CONFIGURATOR_SECURE_REPORT_SOURCE}" ]]; then
+    if [[ -d "${CONFIGURATOR_REPORT_SOURCE}" || -d "${CONFIGURATOR_SECURE_REPORT_SOURCE}" || -d "${JAKARTA_REST_REPORT_SOURCE}" ]]; then
         rm -rf -- "${REPORT_DESTINATION}"
         mkdir -p -- "${REPORT_DESTINATION}"
 
@@ -62,6 +63,10 @@ cleanup() {
         if [[ -d "${CONFIGURATOR_SECURE_REPORT_SOURCE}" ]]; then
             mkdir -p -- "${REPORT_DESTINATION}/configurator-secure"
             cp -a -- "${CONFIGURATOR_SECURE_REPORT_SOURCE}/." "${REPORT_DESTINATION}/configurator-secure/"
+        fi
+        if [[ -d "${JAKARTA_REST_REPORT_SOURCE}" ]]; then
+            mkdir -p -- "${REPORT_DESTINATION}/jakarta-rest"
+            cp -a -- "${JAKARTA_REST_REPORT_SOURCE}/." "${REPORT_DESTINATION}/jakarta-rest/"
         fi
 
         echo "TCK reports copied to ${REPORT_DESTINATION}"
@@ -93,14 +98,18 @@ printf '%s\n' "org.glassfish.jakarta.json; version=${JAKARTA_JSON_VERSION}" >> "
 # This repository is defunct and none of its indexed bundles are needed here.
 : > "${TCK_WORKTREE}/cnf/ext/springsource.mvn"
 
-echo "Running the OSGi Compendium 8.1 Configurator TCK"
+echo "Running the OSGi Compendium 8.1 Configurator and Jakarta REST TCKs"
 (
     cd "${TCK_WORKTREE}"
     ./gradlew \
         :org.osgi.service.cm:jar \
+        :org.osgi.service.component:jar \
         :org.osgi.service.coordinator:jar \
+        :org.osgi.service.jakartars:jar \
         :org.osgi.util.converter:jar \
+        :org.osgi.util.promise:jar \
         :org.osgi.test.cases.configurator:testOSGi \
         :org.osgi.test.cases.configurator.secure:testOSGi \
+        :org.osgi.test.cases.jakartars:testOSGi \
         --no-daemon
 )
