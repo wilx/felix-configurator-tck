@@ -43,17 +43,27 @@ echo "Building and installing Felix Configurator ${CONFIGURATOR_MAVEN_VERSION}"
 
 readonly TEMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/felix-configurator-tck.XXXXXX")"
 readonly TCK_WORKTREE="${TEMP_DIR}/osgi-tck"
-readonly REPORT_SOURCE="${TCK_WORKTREE}/org.osgi.test.cases.configurator/generated/test-reports/testOSGi"
+readonly CONFIGURATOR_REPORT_SOURCE="${TCK_WORKTREE}/org.osgi.test.cases.configurator/generated/test-reports/testOSGi"
+readonly CONFIGURATOR_SECURE_REPORT_SOURCE="${TCK_WORKTREE}/org.osgi.test.cases.configurator.secure/generated/test-reports/testOSGi"
 readonly REPORT_DESTINATION="${ROOT_DIR}/build/tck-reports"
 
 cleanup() {
     exit_status=$?
     set +e
 
-    if [[ -d "${REPORT_SOURCE}" ]]; then
+    if [[ -d "${CONFIGURATOR_REPORT_SOURCE}" || -d "${CONFIGURATOR_SECURE_REPORT_SOURCE}" ]]; then
         rm -rf -- "${REPORT_DESTINATION}"
         mkdir -p -- "${REPORT_DESTINATION}"
-        cp -a -- "${REPORT_SOURCE}/." "${REPORT_DESTINATION}/"
+
+        if [[ -d "${CONFIGURATOR_REPORT_SOURCE}" ]]; then
+            mkdir -p -- "${REPORT_DESTINATION}/configurator"
+            cp -a -- "${CONFIGURATOR_REPORT_SOURCE}/." "${REPORT_DESTINATION}/configurator/"
+        fi
+        if [[ -d "${CONFIGURATOR_SECURE_REPORT_SOURCE}" ]]; then
+            mkdir -p -- "${REPORT_DESTINATION}/configurator-secure"
+            cp -a -- "${CONFIGURATOR_SECURE_REPORT_SOURCE}/." "${REPORT_DESTINATION}/configurator-secure/"
+        fi
+
         echo "TCK reports copied to ${REPORT_DESTINATION}"
     fi
 
@@ -91,5 +101,6 @@ echo "Running the OSGi Compendium 8.1 Configurator TCK"
         :org.osgi.service.coordinator:jar \
         :org.osgi.util.converter:jar \
         :org.osgi.test.cases.configurator:testOSGi \
+        :org.osgi.test.cases.configurator.secure:testOSGi \
         --no-daemon
 )

@@ -9,10 +9,11 @@ inputs as Git submodules:
 
 The harness builds and tests only the two changed Felix projects, `cm.json` and
 `configurator`, installs their bundles into the local Maven repository, and
-runs `org.osgi.test.cases.configurator` with those bundles substituted for the
-released implementations. The TCK's released Felix Config Admin implementation
-is retained because it is supporting infrastructure, not part of the change
-under test.
+runs both `org.osgi.test.cases.configurator` and
+`org.osgi.test.cases.configurator.secure` with those bundles substituted for
+the released implementations. The TCK's released Felix Config Admin
+implementation is retained because it is supporting infrastructure, not part
+of the change under test.
 
 ## Run locally
 
