@@ -4,6 +4,8 @@ on:
   workflow_dispatch:
 
 permissions:
+  actions: read
+  checks: write
   contents: read
 
 jobs:
@@ -24,6 +26,14 @@ jobs:
 
       - name: Run Configurator and Jakarta REST TCK
         run: ./run-tck.sh
+
+      - name: Publish TCK test report
+        if: ${{ !cancelled() }}
+        uses: dorny/test-reporter@v3
+        with:
+          name: OSGi TCK results
+          path: build/tck-reports/**/*.xml
+          reporter: java-junit
 
       - name: Upload TCK reports
         if: always()
